@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import os
 import re
+from dataclasses import dataclass
 from os import environ
 
 from pydantic_yaml import to_yaml_file
@@ -11,12 +13,13 @@ from model import ConductionOfSimpleThreatModelingOnTechnicalLevel, \
 """
 This script finds Confluence wiki pages with specific labels.
 
-To collect meta-information for threat models:
+To collect meta-information for conducted threat modelings:
 * Team or Application
 * Title
 * Date
+* Issues/Tickets (e.g. links to JIRA)
+* Supplemental Docs (e.g. links to Miro)
 * Participants
-* Issues (e.g. links to JIRA)
 """
 
 CONFLUENCE_URL = environ.get("CONFLUENCE_URL")  # example: "https://example.atlassian.net/wiki"
@@ -41,8 +44,7 @@ def to_confluence_url(path):
 
 
 def parse_threat_modeling(page):
-    # print(page)
-    # alternative way to read the wiki page content:
+    # alternative way to retrieve the page content:
     # get_page_by_id(page_id, expand="body.storage")["body"]["storage"]["value"]
 
     # should find an ISO-date with label like `Date: 2022-11-29`
@@ -57,33 +59,57 @@ def parse_threat_modeling(page):
     else:
         tm_date = re.findall(LABELED_DATE_PATTERN, body_dates[0])[0]
 
-    return {'title': page['title'], 'url': to_confluence_url(page['_links']['webui']), 'date': tm_date}
+    space_name = page['_expandable']['space'].rsplit('/', 1)[1]  # space-name after last slash
+
+    return {'title': page['title'],
+            'url': to_confluence_url(page['_links']['webui']),
+            'date': tm_date,
+            'space': space_name}
 
 
-def to_threat_modeling(page):
+def to_threat_modeling(page, space_mapping):
     meta = parse_threat_modeling(page)
-    print(f"* {meta['date']}: {[meta['title']]}({meta['url']})")
-    return ConductionOfSimpleThreatModelingOnTechnicalLevelComponent(
+    subject = space_mapping.get(meta['space'], Subject(application_name='_UNMAPPED_APP', team_name='_UNMAPPED_TEAM'))
+    print(f"* {meta['date']}: {[meta['title']]}({meta['url']}), space `{meta['space']}` mapped to: {subject}")
+    return (subject, ConductionOfSimpleThreatModelingOnTechnicalLevelComponent(
         date=meta['date'],
         title=meta['title'],
-        links=[Link(title=meta['title'], url=meta['url'])])
+        links=[Link(title=meta['title'], url=meta['url'])]))
+
+
+@dataclass
+class Subject:
+    """Subject for a threat-modeling, at least an application, which may be owned by a team."""
+    application_name: str
+    team_name: str = '_UNDEFINED_'
 
 
 if __name__ == "__main__":
-    team_name = 'team-name'
-    # mapping team-name or application name to confluence space,
-    # example: MagicRecords to space MR (e.g. https://example.atlassian.net/wiki/spaces/MR/pages/3530358832)
+    out_path = 'out/'
+    # map confluence space to application-name or team-name,
+    # example: space MR to MagicRecords (e.g. https://example.atlassian.net/wiki/spaces/MR/pages/3530358832)
+    space_to_application_map = {'MR': Subject(application_name='magic-records', team_name='magic-team'),
+                                'EK': Subject(application_name='elastic-kube', team_name='elastic-kubernauts'),
+                                'BED': Subject(application_name='bed-beats')}
+
     print(f"Confluence: Searching pages by label '{PAGE_LABEL_TO_SEARCH}' ..")
     pages = confluence.get_all_pages_by_label(label=PAGE_LABEL_TO_SEARCH, start=0, limit=100)
     print(f"Confluence: Found {len(pages)} pages:")
+
     tms = []
     for p in pages:
         try:
-            tms.append(to_threat_modeling(p))
+            tms.append(to_threat_modeling(p, space_to_application_map))
         except ValueError as e:
             print(f"WARNING: Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])})", "because:", e)
 
-    c = ConductionOfSimpleThreatModelingOnTechnicalLevel(components=tms)
-    output_filename = f"{team_name}_application.yaml"
-    to_yaml_file(output_filename, c)
-    print("YAML output written to file:", output_filename)
+    s = space_to_application_map['MR']
+    file_count = 0
+    model = ConductionOfSimpleThreatModelingOnTechnicalLevel(components=[t[1] for t in tms if t[0] == s])
+    os.makedirs(f"{out_path}/{s.team_name}", exist_ok=True)
+    output_filename = f"{out_path}/{s.team_name}/{s.application_name}_application.yaml"
+    to_yaml_file(output_filename, model)
+    file_count += 1
+
+    print(f"YAML output written in path '{out_path}' to {file_count} file(s).")
+    exit(file_count)
