@@ -9,8 +9,7 @@ from model import ConductionOfSimpleThreatModelingOnTechnicalLevel, \
     ConductionOfSimpleThreatModelingOnTechnicalLevelComponent, Link
 
 """
-This example finds  Confluence wiki pages with specific labels.
-* https://github.com/atlassian-api/atlassian-python-api/tree/master/examples/confluence
+This script finds Confluence wiki pages with specific labels.
 
 To collect meta-information for threat models:
 * Team or Application
