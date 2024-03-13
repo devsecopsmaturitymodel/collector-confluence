@@ -48,31 +48,60 @@ confluence = Confluence(
     timeout=185,
 )
 
+PAGE_LABEL_TO_SEARCH = "threat-modeling"
+
+ISO_DATE_PATTERN = r'(\d{4}-\d{2}-\d{2})'
+LABELED_DATE_PATTERN = r'[Dd]ate:\s*' + ISO_DATE_PATTERN
+
+
+def to_confluence_url(path):
+    return CONFLUENCE_URL + path
+
+
+def parse_threat_modeling(page):
+    # print(page)
+    # alternative way to read the wiki page content:
+    # get_page_by_id(page_id, expand="body.storage")["body"]["storage"]["value"]
+
+    # should find an ISO-date with label like `Date: 2022-11-29`
+    body_dates = confluence.scrap_regex_from_page(page['id'], LABELED_DATE_PATTERN)
+    if body_dates is None or len(body_dates) == 0:
+        title_dates = re.findall(ISO_DATE_PATTERN, page['title'])
+        if title_dates is None or len(title_dates) == 0:
+            raise ValueError(f"Can not find *required threat-modeling date*, "
+                             f"neither in _page body_ using regex `{LABELED_DATE_PATTERN}`, "
+                             f"nor in _page title_ using regex `{ISO_DATE_PATTERN}`!")
+        tm_date = title_dates[0]
+    else:
+        tm_date = re.findall(LABELED_DATE_PATTERN, body_dates[0])[0]
+
+    return {'title': page['title'], 'url': to_confluence_url(page['_links']['webui']), 'date': tm_date}
+
+
+def to_threat_modeling(page):
+    meta = parse_threat_modeling(page)
+    print(f"* {meta['date']}: {[meta['title']]}({meta['url']})")
+    return ConductionOfSimpleThreatModelingOnTechnicalLevelComponent(
+        date=meta['date'],
+        title=meta['title'],
+        links=[Link(title=meta['title'], url=meta['url'])])
+
+
 if __name__ == "__main__":
     team_name = 'team-name'
-    label = "threat-modeling"
-    DATE_PATTERN = r'[Dd]ate:\s*(\d{4}-\d{2}-\d{2})'
-    print(f"Confluence: Searching pages by label '{label}' ..")
-    pages = confluence.get_all_pages_by_label(label=label, start=0, limit=10)
+    # mapping team-name or application name to confluence space,
+    # example: MagicRecords to space MR (e.g. https://example.atlassian.net/wiki/spaces/MR/pages/3530358832)
+    print(f"Confluence: Searching pages by label '{PAGE_LABEL_TO_SEARCH}' ..")
+    pages = confluence.get_all_pages_by_label(label=PAGE_LABEL_TO_SEARCH, start=0, limit=100)
     print(f"Confluence: Found {len(pages)} pages:")
     tms = []
-    for page in pages:
-        # should find an ISO-date with label like `Date: 2022-11-29`
-        tm_date = confluence.scrap_regex_from_page(page['id'], DATE_PATTERN)
-        if tm_date is None:
-            raise ValueError(f"Can not find required date on page using regex '{DATE_PATTERN}'!")
-        tm_date = re.findall(DATE_PATTERN, tm_date[0])[0]
-        # alternative way to read the wiki page content:
-        # get_page_by_id(page_id, expand="body.storage")["body"]["storage"]["value"]
-        print("*", tm_date, page["title"], CONFLUENCE_URL + page['_links']['tinyui'])
-        # print(page)
-        link = Link(title=page['title'], url=CONFLUENCE_URL + page['_links']['tinyui'])
-        tm = ConductionOfSimpleThreatModelingOnTechnicalLevelComponent(date=tm_date, title=page['title'], links=[link])
-        print("Adding Thread-Modelling:", tm)
-        tms.append(tm)
+    for p in pages:
+        try:
+            tms.append(to_threat_modeling(p))
+        except ValueError as e:
+            print(f"WARNING: Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])})", "because:", e)
 
     c = ConductionOfSimpleThreatModelingOnTechnicalLevel(components=tms)
     output_filename = f"{team_name}_application.yaml"
-    with open(output_filename, 'wb') as f:
-        to_yaml_file(f, c)
+    to_yaml_file(output_filename, c)
     print("YAML output written to file:", output_filename)
