@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
+import datetime
 import os
 import re
 from dataclasses import dataclass
 from os import environ
+from typing import List
 
-from pydantic_yaml import to_yaml_file
 from atlassian import Confluence
+from pydantic_yaml import to_yaml_file
 
 from model import ConductionOfSimpleThreatModelingOnTechnicalLevel, \
-    ConductionOfSimpleThreatModelingOnTechnicalLevelComponent, Link
+    Link, ConductionOfSimpleThreatModelingOnTechnicalLevelComponent, Activities, DSOMMapplication, Settings
 
 """
 This script finds Confluence wiki pages with specific labels.
@@ -69,62 +71,140 @@ def parse_threat_modeling(page):
 
 def to_threat_modeling(page, space_mapping):
     meta = parse_threat_modeling(page)
-    subject = space_mapping.get(meta['space'], Subject(application_name='_UNMAPPED_APP', team_name='_UNMAPPED_TEAM'))
-    print(f"* {meta['date']}: {[meta['title']]}({meta['url']}), space `{meta['space']}` mapped to: {subject}")
-    return (subject, ConductionOfSimpleThreatModelingOnTechnicalLevelComponent(
-        date=meta['date'],
-        title=meta['title'],
-        links=[Link(title=meta['title'], url=meta['url'])]))
+    subject = space_mapping.get(meta['space'], Subject.unmapped())
+    return ThreatModeling(subject,
+                          meta['title'],
+                          meta['date'],
+                          links=[Link(title=meta['title'], url=meta['url'])],
+                          source_url=meta['url'])
 
 
-@dataclass
+@dataclass(frozen=True)  # frozen to have a hash for key comparison in dicts
 class Subject:
     """Subject for a threat-modeling, at least an application, which may be owned by a team."""
     application_name: str
-    team_name: str = '_UNDEFINED_'
+    team_name: str = '_UNMAPPED_TEAM'
+
+    @classmethod
+    def unmapped(cls):
+        return Subject(application_name='_UNMAPPED_APP', team_name='_UNMAPPED_TEAM')
+
+    def __repr__(self):
+        if self == Subject.unmapped():
+            return '*UNMAPPED* application/team'
+        if self.team_name is None or self.team_name == '_UNMAPPED_TEAM':
+            return f"application '{self.application_name}' by *UNMAPPED* team"
+        return f"application '{self.application_name}' by team '{self.team_name}'"
 
 
-def write_yaml_files(folder, subject_threatmodel_tuples):
-    s = space_to_application_map['MR']  # FIXME: remove the restriction
-    files_written = 0
+@dataclass
+class ThreatModeling:
+    """Threat-modeling activity for an application conducted by a team includes:
+    Subject ot the threat-modeling:
+    1. application name
+    2. team name
+    The threat-modeling:
+    3. title
+    4. date
+    5. links referencing the source page and supplementary information (like ticket/JIRA-issue, whiteboard/Miro-board)
+    """
 
-    # TODO: loop through each element of the tuples, group files by application
-    model = ConductionOfSimpleThreatModelingOnTechnicalLevel(
-        components=[t[1] for t in subject_threatmodel_tuples if t[0] == s])  # FIXME: remove the restriction
-    os.makedirs(f"{folder}/{s.team_name}", exist_ok=True)
-    output_filename = f"{folder}/{s.team_name}/{s.application_name}_application.yaml"
+    subject: Subject
+    title: str
+    date: datetime.date
+    links: List[Link]
+    source_url: str
+
+    def __repr__(self):
+        return (f"{self.date}: {self.title}({self.source_url})"
+                f", for {self.subject}")
+
+
+def to_component(m: ThreatModeling):
+    return ConductionOfSimpleThreatModelingOnTechnicalLevelComponent(date=m.date, title=m.title, links=m.links)
+
+
+def write_yaml_file(folder, subject, modelings, log_verbose=False):
+    output_filename = f"{folder}/{subject.team_name}/{subject.application_name}_application.yaml"
+    if log_verbose:
+        print(f"File I/O: Preparing folder/file `{output_filename}` for {len(modelings)} modeling(s) ..")
+    os.makedirs(f"{folder}/{subject.team_name}", exist_ok=True)
+
+    components = [to_component(m) for m in modelings]
+    c = ConductionOfSimpleThreatModelingOnTechnicalLevel(components=components)
+    a = Activities(threat_modeling=c)
+    s = Settings(team=subject.team_name, application=subject.application_name)
+    model = DSOMMapplication(settings=s, activities=a)
+
+    if log_verbose:
+        print(f"File I/O: Writing file `{output_filename}` ..")
     to_yaml_file(output_filename, model)
-    files_written += 1
 
-    return files_written
+    return 1
 
 
-def collect_threat_modelings(pages, application_map):
-    tms = []
+@dataclass
+class CollectionResult:
+    threat_modelings: List[ThreatModeling]
+    errors: List[str]
+
+
+def collect_threat_modelings(pages, application_map, log_verbose=False):
+    collected = []
+    errors = []
     for p in pages:
         try:
-            tms.append(to_threat_modeling(p, application_map))
+            tm = to_threat_modeling(p, application_map)
+            if log_verbose:
+                print(f"* {repr(tm)}")
+            collected.append(tm)
         except ValueError as e:
-            print(f"WARNING: Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])})", "because:", e)
+            errors.append(f"Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])}) because: {e}")
 
-    return tms
+    return CollectionResult(collected, errors)
+
+
+def per_app(threat_modelings):
+    # group per app
+    grouped = {}
+    for t in threat_modelings:
+        if t.subject not in grouped:
+            grouped[t.subject] = []
+        grouped[t.subject].append(t)
+
+    return grouped
 
 
 if __name__ == "__main__":
-    out_path = 'out/'
+    is_verbose = True
+    out_path = 'out'
     # map confluence space to application-name or team-name,
     # example: space MR to MagicRecords (e.g. https://example.atlassian.net/wiki/spaces/MR/pages/3530358832)
     space_to_application_map = {'MR': Subject(application_name='magic-records', team_name='magic-team'),
                                 'EK': Subject(application_name='elastic-kube', team_name='elastic-kubernauts'),
                                 'BED': Subject(application_name='bed-beats')}
 
-    print(f"Confluence: Searching pages by label '{PAGE_LABEL_TO_SEARCH}' ..")
+    if is_verbose:
+        print(f"Confluence: Searching pages by label `{PAGE_LABEL_TO_SEARCH}` ..")
     found_pages = confluence.get_all_pages_by_label(label=PAGE_LABEL_TO_SEARCH, start=0, limit=100)
-    print(f"Confluence: Found {len(found_pages)} pages:")
+    print(f"Confluence: Found {len(found_pages)} pages.")
 
-    collected_tuples = collect_threat_modelings(found_pages, space_to_application_map)
+    if is_verbose:
+        print(f"Scraping: Collecting threat-modelings ..")
+    collection = collect_threat_modelings(found_pages, space_to_application_map, log_verbose=is_verbose)
+    print(f"Scraping: Collected {len(collection.threat_modelings)} threat-modelings.")
+    if len(collection.errors) > 0:
+        print("Scraping: Following errors:\n* ", end="")
+        print(*collection.errors, sep="\n* ")
 
-    file_count = write_yaml_files(out_path, collected_tuples)
-    print(f"YAML output written in path '{out_path}' to {file_count} file(s) (see also exit-code for file-count).")
+    if is_verbose:
+        print(f"Output: Writing files to path `{out_path}` ..")
+
+    file_count = 0
+    for app, values in per_app(collection.threat_modelings).items():
+        write_yaml_file(out_path, app, values, log_verbose=is_verbose)
+        file_count += 1
+
+    print(f"Output: YAML file(s) written (see also exit-code for file-count): {file_count}")
 
     exit(file_count)

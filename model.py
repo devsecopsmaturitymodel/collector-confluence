@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field, RootModel
 
@@ -37,7 +37,6 @@ class Settings(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    desired_level: str = Field(..., alias='desired level')
     application: str
     team: str
 
@@ -76,23 +75,15 @@ class Activities(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    Source_Control_Protection: SourceControlProtection = Field(
-        ..., alias='Source Control Protection'
-    )
-    Conduction_of_simple_threat_modeling_on_technical_level: (
-        ConductionOfSimpleThreatModelingOnTechnicalLevel
-    ) = Field(..., alias='Conduction of simple threat modeling on technical level')
-    Reduction_of_the_attack_surface: ReductionOfTheAttackSurface = Field(
-        ..., alias='Reduction of the attack surface'
-    )
+    threat_modeling: ConductionOfSimpleThreatModelingOnTechnicalLevel
 
 
 class DSOMMapplication(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    apiVersion: str
-    kind: str
+    apiVersion: int = 1
+    kind: str = 'application'
     settings: Settings
     activities: Activities
 
