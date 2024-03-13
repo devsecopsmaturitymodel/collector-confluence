@@ -84,6 +84,21 @@ class Subject:
     team_name: str = '_UNDEFINED_'
 
 
+def write_yaml_files(folder, subject_threatmodel_tuples):
+    s = space_to_application_map['MR']  # FIXME: remove the restriction
+    files_written = 0
+
+    # TODO: loop through each element of the tuples, group files by application
+    model = ConductionOfSimpleThreatModelingOnTechnicalLevel(
+        components=[t[1] for t in subject_threatmodel_tuples if t[0] == s])  # FIXME: remove the restriction
+    os.makedirs(f"{folder}/{s.team_name}", exist_ok=True)
+    output_filename = f"{folder}/{s.team_name}/{s.application_name}_application.yaml"
+    to_yaml_file(output_filename, model)
+    files_written += 1
+
+    return files_written
+
+
 if __name__ == "__main__":
     out_path = 'out/'
     # map confluence space to application-name or team-name,
@@ -103,13 +118,7 @@ if __name__ == "__main__":
         except ValueError as e:
             print(f"WARNING: Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])})", "because:", e)
 
-    s = space_to_application_map['MR']
-    file_count = 0
-    model = ConductionOfSimpleThreatModelingOnTechnicalLevel(components=[t[1] for t in tms if t[0] == s])
-    os.makedirs(f"{out_path}/{s.team_name}", exist_ok=True)
-    output_filename = f"{out_path}/{s.team_name}/{s.application_name}_application.yaml"
-    to_yaml_file(output_filename, model)
-    file_count += 1
+    file_count = write_yaml_files(out_path, collected_tuples)
+    print(f"YAML output written in path '{out_path}' to {file_count} file(s) (see also exit-code for file-count).")
 
-    print(f"YAML output written in path '{out_path}' to {file_count} file(s).")
     exit(file_count)
