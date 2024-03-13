@@ -99,6 +99,17 @@ def write_yaml_files(folder, subject_threatmodel_tuples):
     return files_written
 
 
+def collect_threat_modelings(pages, application_map):
+    tms = []
+    for p in pages:
+        try:
+            tms.append(to_threat_modeling(p, application_map))
+        except ValueError as e:
+            print(f"WARNING: Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])})", "because:", e)
+
+    return tms
+
+
 if __name__ == "__main__":
     out_path = 'out/'
     # map confluence space to application-name or team-name,
@@ -108,15 +119,10 @@ if __name__ == "__main__":
                                 'BED': Subject(application_name='bed-beats')}
 
     print(f"Confluence: Searching pages by label '{PAGE_LABEL_TO_SEARCH}' ..")
-    pages = confluence.get_all_pages_by_label(label=PAGE_LABEL_TO_SEARCH, start=0, limit=100)
-    print(f"Confluence: Found {len(pages)} pages:")
+    found_pages = confluence.get_all_pages_by_label(label=PAGE_LABEL_TO_SEARCH, start=0, limit=100)
+    print(f"Confluence: Found {len(found_pages)} pages:")
 
-    tms = []
-    for p in pages:
-        try:
-            tms.append(to_threat_modeling(p, space_to_application_map))
-        except ValueError as e:
-            print(f"WARNING: Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])})", "because:", e)
+    collected_tuples = collect_threat_modelings(found_pages, space_to_application_map)
 
     file_count = write_yaml_files(out_path, collected_tuples)
     print(f"YAML output written in path '{out_path}' to {file_count} file(s) (see also exit-code for file-count).")
