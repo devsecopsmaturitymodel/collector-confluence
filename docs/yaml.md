@@ -24,6 +24,24 @@ But, the model generation resulted in a known issue: [Infinite recursion when "$
 For basic and low-level YAML operations we could use [ruamel.yaml](https://pypi.org/project/ruamel.yaml/) (MIT) is a YAML 1.2 loader/dumper package for Python.
 But when we want to dump a Pydantic model that was generated beforehand, then we should use [NowanIlfideme/pydantic-yaml](https://github.com/NowanIlfideme/pydantic-yaml): YAML support for Pydantic models.
 
+Example output:
+```yaml
+# in folder <team-name>, filename <automated_threat-modeling>.yaml
+apiVersion: v1
+kind: application
+settings:
+  application: "MagicRecords" # e.g. from deployment
+  team: "two towers"
+
+ThreadModelling:
+  components:
+  - date: '2022-11-29'
+    links:
+    - title: Threat modeling MagicRecords
+      url: https://example.atlassian.net/wiki/x/MABt0g
+    title: Threat modeling MagicRecords
+```
+
 ## See also
 
 * Red Hat Developer (2020): [How to configure YAML schema to make editing files easier](https://developers.redhat.com/blog/2020/11/25/how-to-configure-yaml-schema-to-make-editing-files-easier#)
