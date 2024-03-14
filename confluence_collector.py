@@ -7,6 +7,7 @@ from os import environ
 from typing import List
 
 from atlassian import Confluence
+from dotenv import load_dotenv
 from pydantic_yaml import to_yaml_file
 
 from model import ConductionOfSimpleThreatModelingOnTechnicalLevel, \
@@ -35,25 +36,33 @@ which is finally distributed as YAML output:
 in order to be used by a DSOMM metric-analyzer.
 """
 
-CONFLUENCE_URL = environ.get("CONFLUENCE_URL")  # example: "https://example.atlassian.net/wiki"
-CONFLUENCE_LOGIN = environ.get("CONFLUENCE_LOGIN")  # example "username@example.com"
-# create API tokens on https://id.atlassian.com/manage-profile/security/api-tokens
-CONFLUENCE_PASSWORD = environ.get("CONFLUENCE_PASSWORD")  # example api-token
-confluence = Confluence(
-    url=CONFLUENCE_URL,
-    username=CONFLUENCE_LOGIN,
-    password=CONFLUENCE_PASSWORD,
-    timeout=185,
-)
 
-PAGE_LABEL_TO_SEARCH = "threat-modeling"
+def configure_confluence():
+    load_dotenv()
 
+    confluence_url = environ.get("CONFLUENCE_URL")  # example: "https://example.atlassian.net/wiki"
+    confluence_login = environ.get("CONFLUENCE_LOGIN")  # example "username@example.com"
+    # create API tokens on https://id.atlassian.com/manage-profile/security/api-tokens
+    confluence_password = environ.get("CONFLUENCE_PASSWORD")  # example api-token
+
+    confluence = Confluence(
+        url=confluence_url,
+        username=confluence_login,
+        password=confluence_password,
+        timeout=185,
+    )
+
+    def to_confluence_url(path):
+        return confluence_url + path
+
+    confluence.to_url = to_confluence_url
+
+    return confluence
+
+
+# TODO: support localization of label and date format (English with ISO, German with dd.mm.yyyy)
 ISO_DATE_PATTERN = r'(\d{4}-\d{2}-\d{2})'
 LABELED_DATE_PATTERN = r'[Dd]ate:\s*' + ISO_DATE_PATTERN
-
-
-def to_confluence_url(path):
-    return CONFLUENCE_URL + path
 
 
 def parse_threat_modeling(page):
@@ -63,7 +72,7 @@ def parse_threat_modeling(page):
     # should find an ISO-date with label like `Date: 2022-11-29`
     body_dates = confluence.scrap_regex_from_page(page['id'], LABELED_DATE_PATTERN)
     if body_dates is None or len(body_dates) == 0:
-        title_dates = re.findall(ISO_DATE_PATTERN, page['title'])
+        title_dates = re.findall(ISO_DATE_PATTERN, page['title'])  # TODO: lenient parsing, accept also month `2023-12`
         if title_dates is None or len(title_dates) == 0:
             raise ValueError(f"Can not find *required threat-modeling date*, "
                              f"neither in _page body_ using regex `{LABELED_DATE_PATTERN}`, "
@@ -75,7 +84,7 @@ def parse_threat_modeling(page):
     space_name = page['_expandable']['space'].rsplit('/', 1)[1]  # space-name after last slash
 
     return {'title': page['title'],
-            'url': to_confluence_url(page['_links']['webui']),
+            'url': confluence.to_url(page['_links']['webui']),
             'date': tm_date,
             'space': space_name}
 
@@ -98,6 +107,7 @@ class Subject:
 
     @classmethod
     def unmapped(cls):
+        # FIXME generate suffix (e.g. sequence-number) so that each space/app is written to its own file
         return Subject(application_name='_UNMAPPED_APP', team_name='_UNMAPPED_TEAM')
 
     def __repr__(self):
@@ -143,7 +153,7 @@ def write_yaml_file(folder, subject, modelings, log_verbose=False):
 
     components = [to_component(m) for m in modelings]
     c = ConductionOfSimpleThreatModelingOnTechnicalLevel(components=components)
-    a = Activities(threat_modeling=c)
+    a = Activities(threat_modeling=c)  # TODO make this attribute-name configurable, because orgs may have individual names
     s = Settings(team=subject.team_name, application=subject.application_name)
     model = DSOMMapplication(settings=s, activities=a)
 
@@ -170,7 +180,7 @@ def collect_threat_modelings(pages, application_map, log_verbose=False):
                 print(f"* {repr(tm)}")
             collected.append(tm)
         except ValueError as e:
-            errors.append(f"Skipping page [{p['title']}]({to_confluence_url(p['_links']['webui'])}) because: {e}")
+            errors.append(f"Skipping page [{p['title']}]({confluence.to_url(p['_links']['webui'])}) because: {e}")
 
     return CollectionResult(collected, errors)
 
@@ -187,6 +197,9 @@ def per_app(threat_modelings):
 
 
 if __name__ == "__main__":
+    confluence = configure_confluence()
+
+    page_label_to_search = "threat-modeling"
     is_verbose = True
     out_path = 'out'
     # map confluence space to application-name or team-name,
@@ -196,8 +209,8 @@ if __name__ == "__main__":
                                 'BED': Subject(application_name='bed-beats')}
 
     if is_verbose:
-        print(f"Confluence: Searching pages by label `{PAGE_LABEL_TO_SEARCH}` ..")
-    found_pages = confluence.get_all_pages_by_label(label=PAGE_LABEL_TO_SEARCH, start=0, limit=100)
+        print(f"Confluence: Searching pages by label `{page_label_to_search}` ..")
+    found_pages = confluence.get_all_pages_by_label(label=page_label_to_search, start=0, limit=100)
     print(f"Confluence: Found {len(found_pages)} pages.")
 
     if is_verbose:
