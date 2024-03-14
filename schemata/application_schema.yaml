@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/DSOMMapplication",
+  "definitions": {
+    "DSOMMapplication": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apiVersion": {
+          "type": "string",
+          "default": "1"
+        },
+        "kind": {
+          "type": "string",
+          "default": "application"
+        },
+        "settings": {
+          "$ref": "#/definitions/Settings"
+        },
+        "activities": {
+          "$ref": "#/definitions/Activities"
+        }
+      },
+      "required": [
+        "activities",
+        "apiVersion",
+        "kind",
+        "settings"
+      ],
+      "title": "DSOMMapplication"
+    },
+    "Activities": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "threat_modeling": {
+          "$ref": "#/definitions/ThreatModeling"
+        }
+      },
+      "required": [
+        "ThreatModeling"
+      ],
+      "title": "Activities"
+    },
+    "ThreatModeling": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ThreatModelingComponent"
+          }
+        }
+      },
+      "required": [
+        "components"
+      ],
+      "title": "ThreatModeling"
+    },
+    "ThreatModelingComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "title": {
+          "type": "string"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Link"
+          }
+        }
+      },
+      "required": [
+        "date",
+        "links",
+        "title"
+      ],
+      "title": "ThreatModelingComponent"
+    },
+    "Link": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "qt-uri-protocols": [
+            "https"
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "url"
+      ],
+      "title": "Link"
+    },
+    "Settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "application",
+        "team"
+      ],
+      "title": "Settings"
+    }
+  }
+}
