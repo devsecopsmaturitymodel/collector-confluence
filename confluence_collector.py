@@ -25,9 +25,7 @@ to collect meta-information for conducted threat modelings:
 * Team
 * Title
 * Date
-* Issues/Tickets (e.g. links to JIRA)
-* Supplemental Docs (e.g. links to Miro)
-* Participants
+* Links
 
 which is finally distributed as YAML output:
 * in files (one file per application)
