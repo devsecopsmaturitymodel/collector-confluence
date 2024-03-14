@@ -13,15 +13,26 @@ from model import ConductionOfSimpleThreatModelingOnTechnicalLevel, \
     Link, ConductionOfSimpleThreatModelingOnTechnicalLevelComponent, Activities, DSOMMapplication, Settings
 
 """
-This script finds Confluence wiki pages with specific labels.
+This script finds Confluence wiki pages with specific labels,
+and scrape portions of their:
+* title
+* body text
+* space name
 
-To collect meta-information for conducted threat modelings:
-* Team or Application
+to collect meta-information for conducted threat modelings:
+* Application
+* Team
 * Title
 * Date
 * Issues/Tickets (e.g. links to JIRA)
 * Supplemental Docs (e.g. links to Miro)
 * Participants
+
+which is finally distributed as YAML output:
+* in files (one file per application)
+* within folders (one folder per team)
+
+in order to be used by a DSOMM metric-analyzer.
 """
 
 CONFLUENCE_URL = environ.get("CONFLUENCE_URL")  # example: "https://example.atlassian.net/wiki"
