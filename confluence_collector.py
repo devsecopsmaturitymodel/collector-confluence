@@ -89,7 +89,7 @@ def parse_threat_modeling(page):
 
 def to_threat_modeling(page, space_mapping):
     meta = parse_threat_modeling(page)
-    subject = space_mapping.get(meta['space'], Subject.unmapped())
+    subject = space_mapping.get(meta['space'], Subject.unmapped_space(meta['space']))
     return ScrapedThreatModeling(subject,
                                  meta['title'],
                                  meta['date'],
@@ -105,13 +105,16 @@ class Subject:
 
     @classmethod
     def unmapped(cls):
-        # FIXME generate suffix (e.g. sequence-number) so that each space/app is written to its own file
         return Subject(application_name='_UNMAPPED_APP', team_name='_UNMAPPED_TEAM')
+
+    @classmethod
+    def unmapped_space(cls, space: str):
+        return Subject(application_name=f'_UNMAPPED_SPACE_{space}', team_name=f'_UNMAPPED_SPACE_{space}')
 
     def __repr__(self):
         if self == Subject.unmapped():
             return '*UNMAPPED* application/team'
-        if self.team_name is None or self.team_name == '_UNMAPPED_TEAM':
+        if self.team_name is None or self.team_name == Subject.unmapped().team_name:
             return f"application '{self.application_name}' by *UNMAPPED* team"
         return f"application '{self.application_name}' by team '{self.team_name}'"
 
@@ -151,7 +154,8 @@ def write_yaml_file(folder, subject, modelings, log_verbose=False):
 
     components = [ThreatModelingComponent(date=m.date, title=m.title, links=m.links) for m in modelings]
     c = ThreatModeling(components=components)
-    a = Activities(threat_modeling=c)  # TODO make this attribute-name configurable, because orgs may have individual names
+    a = Activities(
+        threat_modeling=c)  # TODO make this attribute-name configurable, because orgs may have individual names
     s = Settings(team=subject.team_name, application=subject.application_name)
     model = DSOMMapplication(settings=s, activities=a)
 
