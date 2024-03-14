@@ -163,8 +163,6 @@ def write_yaml_file(folder, subject, modelings, log_verbose=False):
         print(f"File I/O: Writing file `{output_filename}` ..")
     to_yaml_file(output_filename, model)
 
-    return 1
-
 
 @dataclass
 class CollectionResult:
@@ -220,7 +218,7 @@ if __name__ == "__main__":
     collection = collect_threat_modelings(found_pages, space_to_application_map, log_verbose=is_verbose)
     print(f"Scraping: Collected {len(collection.threat_modelings)} threat-modelings.")
     if len(collection.errors) > 0:
-        print("Scraping: Following errors:\n* ", end="")
+        print(f"Scraping: Collection failed with {len(collection.errors)} errors:\n* ", end="")
         print(*collection.errors, sep="\n* ")
 
     if is_verbose:
@@ -231,6 +229,8 @@ if __name__ == "__main__":
         write_yaml_file(out_path, app, values, log_verbose=is_verbose)
         file_count += 1
 
-    print(f"Output: YAML file(s) written (see also exit-code for file-count): {file_count}")
+    print("--- COMPLETED --------------------------------------")
+    print(f"Scraping: Exit-code shows number of errors: {len(collection.errors)}")
+    print(f"Output: YAML file(s) written: {file_count}")
 
-    exit(file_count)
+    exit(len(collection.errors))
