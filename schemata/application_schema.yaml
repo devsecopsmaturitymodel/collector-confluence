@@ -7,10 +7,12 @@
       "additionalProperties": false,
       "properties": {
         "apiVersion": {
-          "type": "string"
+          "type": "string",
+          "default": "1"
         },
         "kind": {
-          "type": "string"
+          "type": "string",
+          "default": "application"
         },
         "settings": {
           "$ref": "#/definitions/Settings"
@@ -31,40 +33,32 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "Source Control Protection": {
-          "$ref": "#/definitions/SourceControlProtection"
-        },
-        "Conduction of simple threat modeling on technical level": {
-          "$ref": "#/definitions/ConductionOfSimpleThreatModelingOnTechnicalLevel"
-        },
-        "Reduction of the attack surface": {
-          "$ref": "#/definitions/ReductionOfTheAttackSurface"
+        "threat_modeling": {
+          "$ref": "#/definitions/ThreatModeling"
         }
       },
       "required": [
-        "Conduction of simple threat modeling on technical level",
-        "Reduction of the attack surface",
-        "Source Control Protection"
+        "ThreatModeling"
       ],
       "title": "Activities"
     },
-    "ConductionOfSimpleThreatModelingOnTechnicalLevel": {
+    "ThreatModeling": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "components": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ConductionOfSimpleThreatModelingOnTechnicalLevelComponent"
+            "$ref": "#/definitions/ThreatModelingComponent"
           }
         }
       },
       "required": [
         "components"
       ],
-      "title": "ConductionOfSimpleThreatModelingOnTechnicalLevel"
+      "title": "ThreatModeling"
     },
-    "ConductionOfSimpleThreatModelingOnTechnicalLevelComponent": {
+    "ThreatModelingComponent": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -87,7 +81,7 @@
         "links",
         "title"
       ],
-      "title": "ConductionOfSimpleThreatModelingOnTechnicalLevelComponent"
+      "title": "ThreatModelingComponent"
     },
     "Link": {
       "type": "object",
@@ -110,81 +104,10 @@
       ],
       "title": "Link"
     },
-    "ReductionOfTheAttackSurface": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "components": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ReductionOfTheAttackSurfaceComponent"
-          }
-        }
-      },
-      "required": [
-        "components"
-      ],
-      "title": "ReductionOfTheAttackSurface"
-    },
-    "ReductionOfTheAttackSurfaceComponent": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "date": {
-          "type": "string",
-          "format": "date"
-        }
-      },
-      "required": [
-        "date"
-      ],
-      "title": "ReductionOfTheAttackSurfaceComponent"
-    },
-    "SourceControlProtection": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "components": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/SourceControlProtectionComponent"
-          }
-        }
-      },
-      "required": [
-        "components"
-      ],
-      "title": "SourceControlProtection"
-    },
-    "SourceControlProtectionComponent": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "qt-uri-protocols": [
-            "https"
-          ]
-        },
-        "date": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "date",
-        "url"
-      ],
-      "title": "SourceControlProtectionComponent"
-    },
     "Settings": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "desired level": {
-          "type": "string"
-        },
         "application": {
           "type": "string"
         },
@@ -194,7 +117,6 @@
       },
       "required": [
         "application",
-        "desired level",
         "team"
       ],
       "title": "Settings"

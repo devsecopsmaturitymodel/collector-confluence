@@ -10,8 +10,8 @@ from atlassian import Confluence
 from dotenv import load_dotenv
 from pydantic_yaml import to_yaml_file
 
-from model import ConductionOfSimpleThreatModelingOnTechnicalLevel, \
-    Link, ConductionOfSimpleThreatModelingOnTechnicalLevelComponent, Activities, DSOMMapplication, Settings
+from model import ThreatModeling, \
+    Link, Activities, DSOMMapplication, Settings, ThreatModelingComponent
 
 """
 This script finds Confluence wiki pages with specific labels,
@@ -90,11 +90,11 @@ def parse_threat_modeling(page):
 def to_threat_modeling(page, space_mapping):
     meta = parse_threat_modeling(page)
     subject = space_mapping.get(meta['space'], Subject.unmapped())
-    return ThreatModeling(subject,
-                          meta['title'],
-                          meta['date'],
-                          links=[Link(title=meta['title'], url=meta['url'])],
-                          source_url=meta['url'])
+    return ScrapedThreatModeling(subject,
+                                 meta['title'],
+                                 meta['date'],
+                                 links=[Link(title=meta['title'], url=meta['url'])],
+                                 source_url=meta['url'])
 
 
 @dataclass(frozen=True)  # frozen to have a hash for key comparison in dicts
@@ -117,7 +117,7 @@ class Subject:
 
 
 @dataclass
-class ThreatModeling:
+class ScrapedThreatModeling:
     """Threat-modeling activity for an application conducted by a team includes:
     Subject ot the threat-modeling:
     1. application name
@@ -139,8 +139,8 @@ class ThreatModeling:
                 f", for {self.subject}")
 
 
-def to_component(m: ThreatModeling):
-    return ConductionOfSimpleThreatModelingOnTechnicalLevelComponent(date=m.date, title=m.title, links=m.links)
+def to_component(m: ScrapedThreatModeling):
+    return ThreatModelingComponent(date=m.date, title=m.title, links=m.links)
 
 
 def write_yaml_file(folder, subject, modelings, log_verbose=False):
@@ -149,8 +149,8 @@ def write_yaml_file(folder, subject, modelings, log_verbose=False):
         print(f"File I/O: Preparing folder/file `{output_filename}` for {len(modelings)} modeling(s) ..")
     os.makedirs(f"{folder}/{subject.team_name}", exist_ok=True)
 
-    components = [to_component(m) for m in modelings]
-    c = ConductionOfSimpleThreatModelingOnTechnicalLevel(components=components)
+    components = [ThreatModelingComponent(date=m.date, title=m.title, links=m.links) for m in modelings]
+    c = ThreatModeling(components=components)
     a = Activities(threat_modeling=c)  # TODO make this attribute-name configurable, because orgs may have individual names
     s = Settings(team=subject.team_name, application=subject.application_name)
     model = DSOMMapplication(settings=s, activities=a)
@@ -164,7 +164,7 @@ def write_yaml_file(folder, subject, modelings, log_verbose=False):
 
 @dataclass
 class CollectionResult:
-    threat_modelings: List[ThreatModeling]
+    threat_modelings: List[ScrapedThreatModeling]
     errors: List[str]
 
 
