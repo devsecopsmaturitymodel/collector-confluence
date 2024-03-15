@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import List
 
 import ruamel.yaml
+import typer
 from atlassian import Confluence
 from dotenv import load_dotenv
 from pydantic_yaml import to_yaml_file
@@ -311,10 +312,12 @@ def prepend_header(filename, comment_line):
         modified.write(f"# {comment_line}\n" + data)
 
 
-if __name__ == "__main__":
-    config_yaml = Path('example/scraping_config.yaml')
-    require_file(config_yaml)
-    config = load_config(config_yaml)
+def main(scraping_config: Path, out_path: Path = Path('out'), debug: bool = True):
+    require_file(scraping_config)
+    config = load_config(scraping_config)
 
-    out = Path('out')
-    scrape_to_folder(scraping_config=config, out_path=out, log_verbose=True)
+    scrape_to_folder(scraping_config=config, out_path=out_path, log_verbose=debug)
+
+
+if __name__ == "__main__":
+    typer.run(main)
