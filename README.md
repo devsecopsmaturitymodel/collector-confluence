@@ -49,6 +49,8 @@ pip install -r requirements.txt
 ```
 
 ### Configuration
+
+#### Confluence Access
 We recommend to prepare a `.env` file and specify the confluence URL, account and credentials there.
 
 Example file `.env` (with anonymized data):
@@ -60,8 +62,40 @@ CONFLUENCE_PASSWORD=''  # fill in your API token from your Atlassian profile
 However, you can also set those environment-variables separately.
 In case both are present, the `.env` file and environment-variables, then the environment-variables are finally used. 
 
+### Scraping configuration
+Use a YAML file to configure the label for the Confluence-search and the Confluence-space to application/team mapping,
+The key-value pair for `space_mapping` is required, the `search_label` defaults to `'threat-modeling'`. 
+
+See example [`scraping_config.yaml`](example/scraping_config.yaml):
+```yaml
+space_mapping:
+  MR:
+    application_name: 'magic-records'
+    team_name: 'magic-team'
+  EK: { application_name: 'elastic-kube', team_name: 'elastic-kubernauts' }
+  BED: { application_name: 'bed-beats' }
+search_label: 'threat-modeling'
+```
+
 ### Run
-Run the Python executable script (e.g. on Linux and macOS):
+Run the CLI app with your prepared Scraping configuration YAML as argument (e.g. on Linux and macOS):
 ```shell
-./confluence_collector.py
+./confluence_collector.py example/scraping_config.yaml
+```
+To see the CLI help for more options (like e.g. `--out-path` or `--debug`):
+```shell
+./confluence_collector.py --help
+```
+Help screen:
+```text
+ Usage: confluence_collector.py [OPTIONS] SCRAPING_CONFIG                                                                                                                                                                       
+                                                                                                                                                                                                                                
+╭─ Arguments ───────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *    scraping_config      PATH  [default: None] [required]                                                        │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --out-path                  PATH  [default: out]                                                                  │
+│ --debug       --no-debug          [default: debug]                                                                │
+│ --help                            Show this message and exit.                                                     │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
