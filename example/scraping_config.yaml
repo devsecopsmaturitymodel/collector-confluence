@@ -1,0 +1,7 @@
+space_mapping:
+  MR:
+    application_name: 'magic-records'
+    team_name: 'magic-team'
+  EK: { application_name: 'elastic-kube', team_name: 'elastic-kubernauts' }
+  BED: { application_name: 'bed-beats' }
+search_label: 'threat-modeling'
