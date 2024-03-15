@@ -26,7 +26,7 @@ class Settings(BaseModel):
     team: str
 
 
-class ThreatModelingComponent(BaseModel):
+class DateTitleLinksComponent(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -35,18 +35,18 @@ class ThreatModelingComponent(BaseModel):
     links: List[Link]
 
 
-class ThreatModeling(BaseModel):
+class DateTitleLinks(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    components: List[ThreatModelingComponent]
+    components: List[DateTitleLinksComponent]
 
 
 class Activities(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    threat_modeling: Optional[ThreatModeling] = None
+    date_title_link: Optional[DateTitleLinks] = None
 
 
 class DSOMMapplication(BaseModel):

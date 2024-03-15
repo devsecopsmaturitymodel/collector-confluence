@@ -1,7 +1,8 @@
 # Collector for Confluence
 Collects meta-information about conducted threat modeling activities from Confluence wiki pages.
 
-## Meta-information about a Threat Modeling Activity
+## Meta-information about a DateTitleLink
+The generic type DateTitleLink can be used to assess DSOMM activities like Conduction ofThreat Modeling or Conduction of Pentests.
 
 In the OWASP Foundation community article (Nov 2023) [Threat Modeling Process](https://owasp.org/www-community/Threat_Modeling_Process#threat-model-information),
 lists following meta-information for a threat model:
