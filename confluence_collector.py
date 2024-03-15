@@ -16,6 +16,8 @@ from pydantic_yaml import to_yaml_file
 from model import ThreatModeling, \
     Link, Activities, DSOMMapplication, Settings, ThreatModelingComponent
 
+DEFAULT_SEARCH_LABEL = 'threat-modeling'
+
 """
 This script finds Confluence wiki pages with specific labels,
 and scrape portions of their:
@@ -70,28 +72,46 @@ class Subject:
 @dataclass
 class ScrapingConfig:
     space_mapping: dict[str, Subject]
-    search_label: str = 'threat-modeling'
+    search_label: str = DEFAULT_SEARCH_LABEL
 
 
 def load_config(yaml_file: Path = Path('config.yaml')):
     yaml = ruamel.yaml.YAML(typ='safe', pure=True)
     data = yaml.load(yaml_file)
 
-    space_mapping = dict()
-    for k, v in data['space_mapping'].items():
-        space_mapping[k] = Subject(**v)
+    try:
+        space_mapping = {k: Subject(**v) for k, v in data['space_mapping'].items()}
+    except KeyError as e:
+        missing_key = e.args[0]
+        raise ValueError(f"YAML top-level key `{missing_key}` missing."
+                         " The value is required to map spaces to applications/teams."
+                         f" Valid Example: `{missing_key}:"
+                         "{MR: {application_name: 'm-records', team_name: 'm-team'}}`.")
+    except TypeError as e:  # Subject.__init__() got an unexpected keyword argument 'application_nam'
+        error_cause = e.args[0]
+        raise ValueError(f"YAML top-level key `{'space_mapping'}` contains invalid value(s)."
+                         f" That caused an error: {error_cause}."
+                         f" Valid Example: `{'space_mapping'}:"
+                         "{MR: {application_name: 'm-records', team_name: 'm-team'}}`.")
 
-    return ScrapingConfig(space_mapping, data['search_label'])
+    search_label = DEFAULT_SEARCH_LABEL
+    try:
+        search_label = data['search_label']
+    except KeyError as e:
+        missing_key = e.args[0]
+        print(f"WARNING: YAML top-level key `{missing_key}` missing. "
+              f"The default label value `{DEFAULT_SEARCH_LABEL}` will be used to search pages.")
+
+    return ScrapingConfig(space_mapping, search_label)
 
 
-def validate_config(config_path: Path):
+def require_file(config_path: Path):
     if config_path is None:
-        print("No config file specified. The config file is required to map Confluence spaces to applications.")
         raise ValueError("No config file specified.")
     if config_path.is_dir():
-        print(f"Config `{config_path}` is a directory, but must be a file.")
+        raise ValueError(f"Config `{config_path}` is a directory, but must be a file.")
     elif not config_path.exists():
-        print(f"The config file `{config_path}` doesn't exist.")
+        raise ValueError(f"Config file `{config_path}` doesn't exist.")
 
 
 def scrape_to_folder(scraping_config: ScrapingConfig, out_path: Path = Path('out'), log_verbose: bool = False):
@@ -293,7 +313,7 @@ def prepend_header(filename, comment_line):
 
 if __name__ == "__main__":
     config_yaml = Path('example/scraping_config.yaml')
-    validate_config(config_yaml)
+    require_file(config_yaml)
     config = load_config(config_yaml)
 
     out = Path('out')
