@@ -7,10 +7,12 @@ COPY requirements.txt /app/requirements.txt
 RUN cd /app && pip install --target=./ --no-cache-dir -r requirements.txt
 COPY *.py /app
 COPY schemata /app
+COPY scraping_config.yaml /app
 
 ENV CONFLUENCE_URL ""
 ENV CONFLUENCE_LOGIN ""
 ENV CONFLUENCE_PASSWORD ""
 
-CMD "/app/confluence_collector.py"
+ENTRYPOINT ["python3", "/app/confluence_collector.py"]
+CMD ["--out-path", "/tmp/out", "/app/scraping_config.yaml"]
 

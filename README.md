@@ -66,7 +66,7 @@ In case both are present, the `.env` file and environment-variables, then the en
 Use a YAML file to configure the label for the Confluence-search and the Confluence-space to application/team mapping,
 The key-value pair for `space_mapping` is required, the `search_label` defaults to `'threat-modeling'`. 
 
-See example [`scraping_config.yaml`](example/scraping_config.yaml):
+See example [`scraping_config.yaml`](scraping_config.yaml):
 ```yaml
 space_mapping:
   MR:
@@ -77,7 +77,8 @@ space_mapping:
 search_label: 'threat-modeling'
 ```
 
-### Run
+### Run and Deployment
+#### Locally with python
 Run the CLI app with your prepared Scraping configuration YAML as argument (e.g. on Linux and macOS):
 ```shell
 ./confluence_collector.py example/scraping_config.yaml
@@ -99,3 +100,12 @@ Help screen:
 │ --help                            Show this message and exit.                                                     │
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
+
+#### Docker
+```
+# Please cd into this directory and fill out .env
+docker build -t wurstbrot/collector-confluence .
+docker run --env-file .env --volume ./scraping_config.yaml:/app/scraping_config.yaml wurstbrot/collector-confluence
+```
+#### Kubernetes
+TODO: Kustomize
