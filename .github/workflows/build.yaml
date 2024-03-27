@@ -5,11 +5,16 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  schedule:
+    - cron: "0 7 * * *"
 
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
       - id: semver-tag
         uses: gandarez/semver-action@master
         with:
