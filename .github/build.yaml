@@ -1,0 +1,32 @@
+name: ci
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - id: semver-tag
+        uses: gandarez/semver-action@master
+        with:
+          branching_model: "git-flow"
+          prefix: "v"
+          main_branch_name: "main"
+      - name: "Created tag"
+        run: echo "tag ${{ steps.semver-tag.outputs.semver_tag }}"
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: wurstbrot/collector-confluence:latest,wurstbort/collector-confluence:${{ steps.semver-tag.outputs.semver_tag }}
