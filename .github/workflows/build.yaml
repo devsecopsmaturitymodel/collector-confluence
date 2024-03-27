@@ -16,16 +16,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false # This is important if you have branch protection rules!
-      - name: Semantic Release
-        id: semantic   # Need an `id` for output variables
-        uses: cycjimmy/semantic-release-action@v4
-        with:
-          branch: 'main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: show version
-        run: |
-          echo "Semantic Release Version: ${{ steps.semantic.outputs.new_release_version }}"
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -43,4 +33,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: wurstbrot/collector-confluence:latest,wurstbrot/collector-confluence:${{ steps.semantic.outputs.new_release_version }}
+          tags: wurstbrot/collector-confluence:latest,wurstbrot/collector-confluence:${{ github.run_number }}
