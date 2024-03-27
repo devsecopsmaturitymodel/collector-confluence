@@ -12,17 +12,14 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          persist-credentials: false
-      - id: semver-tag
-        uses: gandarez/semver-action@master
-        with:
-          branching_model: "git-flow"
-          prefix: "v"
-          main_branch_name: "main"
-      - name: "Created tag"
-        run: echo "tag ${{ steps.semver-tag.outputs.semver_tag }}"
+          persist-credentials: false # This is important if you have branch protection rules!
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
