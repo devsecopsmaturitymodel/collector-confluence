@@ -19,6 +19,11 @@ jobs:
       - name: Semantic Release
         id: semantic   # Need an `id` for output variables
         uses: cycjimmy/semantic-release-action@v4
+        with:
+          branches: |
+            [
+              'main'
+            ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       -
