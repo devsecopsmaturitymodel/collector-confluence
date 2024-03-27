@@ -1,5 +1,8 @@
 name: ci
 
+on:
+  push:
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -29,4 +32,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: wurstbrot/collector-confluence:latest,wurstbort/collector-confluence:${{ steps.semver-tag.outputs.semver_tag }}
+          tags: wurstbrot/collector-confluence:latest,wurstbrot/collector-confluence:${{ steps.semver-tag.outputs.semver_tag }}
