@@ -1,0 +1,16 @@
+{
+  "branch": "main",
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "python",
+        "releaseRules": [
+          {"breaking": true, "release": "minor"},
+          {"tag": "Breaking", "release": "minor"}
+        ]
+      }
+    ],
+    "@semantic-release/github"
+  ]
+}
