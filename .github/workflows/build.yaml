@@ -20,12 +20,12 @@ jobs:
         id: semantic   # Need an `id` for output variables
         uses: cycjimmy/semantic-release-action@v4
         with:
-          branches: |
-            [
-              'main'
-            ]
+          branch: 'main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: show version
+        run: |
+          echo "Semantic Release Version: ${{ steps.semantic.outputs.new_release_version }}"
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
