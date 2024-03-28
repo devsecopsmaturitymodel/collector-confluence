@@ -5,3 +5,4 @@ space_mapping:
   EK: { application_name: 'elastic-kube', team_name: 'elastic-kubernauts' }
   BED: { application_name: 'bed-beats' }
 search_label: 'threat-modeling'
+activity_name: 'Threat Modeling'
