@@ -14,5 +14,10 @@ ENV CONFLUENCE_URL ""
 ENV CONFLUENCE_LOGIN ""
 ENV CONFLUENCE_PASSWORD ""
 
+ENV GITHUB_ACCESS_TOKEN ""
+ENV GITHUB_OWNER ""
+ENV GITHUB_REPO ""
+ENV GITHUB_HOSTNAME "" # for on premise github enterprise
+
 ENTRYPOINT ["python3", "/app/confluence_collector.py"]
 CMD [ "/app/scraping_config.yaml" ]
