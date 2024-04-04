@@ -89,7 +89,7 @@ GITHUB_APP_ID=''
 GITHUB_APP_PRIVATE_KEY_BASE64=''
 GITHUB_OWNER=''
 # or
-GITHUB_PAT='' # fine granted
+GITHUB_ACCESS_TOKEN='' # fine granted
 ```
 ### Run and Deployment
 #### Locally with python
