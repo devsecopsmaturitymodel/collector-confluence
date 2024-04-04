@@ -26,7 +26,7 @@ from model import ThreatModeling, \
 
 DEFAULT_SEARCH_LABEL = 'threat-modeling'
 DEFAULT_ACTIVITY_NAME = 'Threat Modeling'
-DEFAULT_SUBFOLDER_NAME = 'automated'
+DEFAULT_SUBFOLDER_NAME = 'activities/automated'
 
 """
 This script finds Confluence wiki pages with specific labels,
@@ -366,7 +366,6 @@ def gitPullAndGetOrigin(folder: Path, log_verbose: bool = False):
             g = Github(base_url=f"https://{hostname}/api/v3", auth=auth)
             repo_url = f"https://x-access-token:{token}@github.com/{owner}/{repo}.git"
             repo = Repo.clone_from(repo_url, folder)
-
 
         if os.getenv("GITHUB_USERNAME") != None:
             auth = Auth.Login(os.getenv("GITHUB_USERNAME"), os.getenv("GITHUB_PASSWORD"))
