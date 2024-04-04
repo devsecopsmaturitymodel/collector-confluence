@@ -56,7 +56,7 @@ We recommend to prepare a `.env` file and specify the confluence URL, account an
 
 Example file `.env` (with anonymized data):
 ```
-CONFLUENCE_URL='https://pagel-team-xbbaqjrbqjmj.atlassian.net' # change to your Confluence cloud URL
+CONFLUENCE_URL='https://example.atlassian.net/wiki' # change to your Confluence cloud URL
 CONFLUENCE_LOGIN='username@example.com'  # change to your account name/email 
 CONFLUENCE_PASSWORD=''  # fill in your API token from your Atlassian profile
 ```
