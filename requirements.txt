@@ -7,7 +7,7 @@ click==8.1.7
 colorama==0.4.6
 Deprecated==1.2.14
 idna==3.6
-importlib_metadata==7.0.2
+importlib_metadata==7.1.0
 jmespath==1.0.1
 markdown-it-py==3.0.0
 mdurl==0.1.2
