@@ -19,5 +19,7 @@ ENV GITHUB_OWNER ""
 ENV GITHUB_REPO ""
 ENV GITHUB_HOSTNAME "" # for on premise github enterprise
 
+USER 1000
+
 ENTRYPOINT ["python3", "/app/confluence_collector.py"]
 CMD [ "/app/scraping_config.yaml" ]
