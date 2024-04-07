@@ -15,4 +15,4 @@ jobs:
       - name: deploy
         run: |
           pip install -r requirements.txt
-          python3 ./collector_confluence.py scraping_config.yaml
+          python3 ./confluence_collector.py scraping_config.yaml
