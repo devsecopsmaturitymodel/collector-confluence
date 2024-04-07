@@ -21,5 +21,6 @@ jobs:
           GIT_HUB_REPO: ${{ env.GIT_HUB_REPO }}
           GIT_HUB_OWNER: ${{ env.GIT_HUB_OWNER }}
         run: |
+          echo $CONFLUENCE_URL
           pip install -r requirements.txt
           python3 ./confluence_collector.py scraping_config.yaml
