@@ -1,0 +1,16 @@
+name: Demo scheduled Run of the Collector
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    environment: heroku
+    steps:
+      - name: deploy
+        run: |
+          pip install -r requirements.txt
+          python3 ./collector_confluence.py scraping_config.yaml
