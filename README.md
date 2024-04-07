@@ -83,13 +83,13 @@ activity_name: 'Threat Modeling'
 The application is based on Github and easily adaoptable for github enterprise.
 Example file `.env`:
 ```bash
-GITHUB_REPO='metricca-data'
+GIT_HUB_REPO='metricca-data'
+GIT_HUB_OWNER='devsecopsmaturitymodel'
 
-GITHUB_APP_ID=''
-GITHUB_APP_PRIVATE_KEY_BASE64=''
-GITHUB_OWNER='devsecopsmaturitymodel'
+GIT_HUB_APP_ID=''
+GIT_HUB_APP_PRIVATE_KEY_BASE64=''
 # or
-GITHUB_ACCESS_TOKEN='' # fine granted
+GIT_HUB_ACCESS_TOKEN='' # fine granted
 ```
 ### Run and Deployment
 #### Locally with python

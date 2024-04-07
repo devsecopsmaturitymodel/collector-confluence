@@ -355,27 +355,27 @@ def gitPullAndGetOrigin(folder: Path, log_verbose: bool = False):
         if folder.exists():
             shutil.rmtree(folder)
 
-        hostname = os.getenv("GITHUB_HOSTNAME")
+        hostname = os.getenv("GIT_HUB_HOSTNAME")
         if hostname == None:
             hostname = "github.com"
-        owner = os.getenv("GITHUB_OWNER")
-        repo = os.getenv("GITHUB_REPO")
-        if os.getenv("GITHUB_ACCESS_TOKEN") != "":
-            token = os.getenv("GITHUB_ACCESS_TOKEN")
-            auth = Auth.Token(os.getenv("GITHUB_ACCESS_TOKEN"))
+        owner = os.getenv("GIT_HUB_OWNER")
+        repo = os.getenv("GIT_HUB_REPO")
+        if os.getenv("GIT_HUB_ACCESS_TOKEN") != "":
+            token = os.getenv("GIT_HUB_ACCESS_TOKEN")
+            auth = Auth.Token(os.getenv("GIT_HUB_ACCESS_TOKEN"))
             g = Github(base_url=f"https://{hostname}/api/v3", auth=auth)
             repo_url = f"https://x-access-token:{token}@github.com/{owner}/{repo}.git"
             repo = Repo.clone_from(repo_url, folder)
 
-        if os.getenv("GITHUB_USERNAME") != None:
-            auth = Auth.Login(os.getenv("GITHUB_USERNAME"), os.getenv("GITHUB_PASSWORD"))
+        if os.getenv("GIT_HUB_USERNAME") != None:
+            auth = Auth.Login(os.getenv("GIT_HUB_USERNAME"), os.getenv("GIT_HUB_PASSWORD"))
             g = Github(base_url=f"https://{hostname}/api/v3", auth=auth)
             login = g.get_user().login
             print(login)
 
-        if (os.getenv("GITHUB_APP_ID") is not None) and (os.getenv("GITHUB_APP_ID") != ""):
-            id = int(os.getenv("GITHUB_APP_ID"))
-            private_key = base64.b64decode(os.getenv("GITHUB_APP_PRIVATE_KEY_BASE64"))
+        if (os.getenv("GIT_HUB_APP_ID") is not None) and (os.getenv("GIT_HUB_APP_ID") != ""):
+            id = int(os.getenv("GIT_HUB_APP_ID"))
+            private_key = base64.b64decode(os.getenv("GIT_HUB_APP_PRIVATE_KEY_BASE64"))
             token = getGitAppToken(id, repo, owner, private_key)
             repo_url = f"https://x-access-token:{token}@{hostname}/{owner}/{repo}.git"
 
