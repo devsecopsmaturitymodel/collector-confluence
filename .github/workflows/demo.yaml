@@ -24,4 +24,4 @@ jobs:
           heroku_app_name: "collector-confluence"
           heroku_email: timo.pagel@owasp.org
           branch: "main"
-          usedocker: true
+#          usedocker: true
