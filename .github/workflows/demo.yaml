@@ -13,6 +13,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: deploy
+        env: 
+          CONFLUENCE_PASSWORD: ${{ secrets.CONFLUENCE_PASSWORD }}
+          CONFLUENCE_USER: ${{ secrets.CONFLUENCE_USER }}
+          GIT_HUB_ACCESS_TOKEN: ${{ secrets.GIT_HUB_ACCESS_TOKEN }}
         run: |
           pip install -r requirements.txt
           python3 ./confluence_collector.py scraping_config.yaml
