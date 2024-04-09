@@ -19,7 +19,7 @@ from git import Repo
 from github import GithubIntegration
 from github import Auth
 from github import Github
-
+from git import Actor
 
 from model import ThreatModeling, \
     Link, Activities, DSOMMapplication, Settings, ThreatModelingComponent
@@ -149,8 +149,11 @@ def scrape_to_folder(scraping_config: ScrapingConfig, out_path: Path = Path('out
     repo = gitPullAndGetOrigin(out_path, log_verbose)
     files = write_output_files(collection.threat_modelings, out_path.__str__() + "/" + scraping_config.subfolder_name, scraping_config.activity_name, log_verbose)
 
+    author = Actor("Bot Author", environ.get('git_user_mail'))
+    committer = Actor("Bot Committer", environ.get('git_user_mail'))
+
     repo.git.add('--all')
-    repo.index.commit("add files by collector-confluence")
+    repo.index.commit("add files by collector-confluence", author=author, committer=committer)
     origin = repo.remote(name='origin')
     origin.push()
 

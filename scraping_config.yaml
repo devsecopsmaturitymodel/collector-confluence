@@ -6,3 +6,4 @@ space_mapping:
   BED: { application_name: 'bed-beats' }
 search_label: 'threat-modeling'
 activity_name: 'Threat Modeling'
+git_user_mail: 'collector-confluence@owasp.org'
