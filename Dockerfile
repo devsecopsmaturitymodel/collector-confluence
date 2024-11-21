@@ -4,6 +4,7 @@ LABEL org.opencontainers.image.title="OWASP DSOMM metricCA collector for conflue
 LABEL org.opencontainers.image.source="https://github.com/devsecopsmaturitymodel/collector-confluence/"
 
 COPY requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip
 RUN cd /app && pip install --target=./ --no-cache-dir -r requirements.txt
 COPY *.py /app
 COPY schemata /app
