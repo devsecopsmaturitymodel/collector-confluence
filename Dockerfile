@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.11
 
 LABEL org.opencontainers.image.title="OWASP DSOMM metricCA collector for confluence"
 LABEL org.opencontainers.image.source="https://github.com/devsecopsmaturitymodel/collector-confluence/"
