@@ -1,27 +1,28 @@
 name: Demo scheduled Run of the Collector
-
 on:
   schedule:
-    - cron: "0 0 * * *"
-  workflow_dispatch:
+    - cron: "0 0 * * *"  # Runs at 00:00 UTC every day
+  workflow_dispatch:      # Allows manual triggering
 
 jobs:
-  heroku:
+  deploy:
     if: github.repository == 'devsecopsmaturitymodel/collector-confluence' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: heroku
+    
     steps:
-      - name: "Check out Git repository"
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac #v4.0.0
-      - name: "Set Heroku app & branch for ${{ github.ref }}"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set Heroku branch
         run: |
-          echo $GITHUB_REF
           echo "HEROKU_BRANCH=main" >> $GITHUB_ENV
-      - name: "Deploy ${{ github.ref }} to Heroku"
-        uses: akhileshns/heroku-deploy@9fd0f9faae4aa93a38d6f5e25b9128589f1371b0 #v3.12.14
+          
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.14
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "collector-confluence"
           heroku_email: timo.pagel@owasp.org
-          branch: "main"
-#          usedocker: true
+          branch: ${{ env.HEROKU_BRANCH }}
+          
