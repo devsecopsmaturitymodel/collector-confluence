@@ -1,5 +1,5 @@
 annotated-types==0.6.0
-atlassian-python-api==3.41.11
+atlassian-python-api==4.0.7
 beautifulsoup4==4.12.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
